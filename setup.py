@@ -1,5 +1,3 @@
-# TODO: install invoke
-
 from pathlib import Path
 from setuptools import setup, find_packages
 
@@ -17,6 +15,5 @@ setup(
     install_requires=["beautifulsoup4>=4.9.1,<5"],
     extras_require={"dev": ["ptvsd>=4.3.2,<5"]},
     include_package_data=True,
-    # scripts=scripts,
     entry_points={"console_scripts": ["feed = feed.cli:main"]},
 )
