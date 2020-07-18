@@ -8,3 +8,6 @@ __pycache__
 # IDE
 .vscode
 
+# App
+.feed_cache
+
