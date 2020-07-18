@@ -1,18 +1,3 @@
-# fetch webpage from link
-# diff with cached local previous fetch
-# if no previous fetch or different,
-#   prepare email body with new chapter link
-#   send email to recepient
-
-# provides:
-# - weblink
-# - parse pattern for diffing
-# - method for assembling email body
-
-# defines a feed per relevant website
-
-# - one punch man
-# - one piece
 import logging
 import os
 from pathlib import Path
@@ -30,10 +15,10 @@ CUSTOM_CACHE_DIR: Optional[Path] = None
 def get_cache_dir() -> Path:
     if CUSTOM_CACHE_DIR:
         return CUSTOM_CACHE_DIR
-    return Path(os.environ.get("FEED_CACHE_PATH", DEFAULT_CACHE_DIR))
+    return Path(os.environ.get("FEED_CACHE_DIR", DEFAULT_CACHE_DIR))
 
 
-def set_cache_path(path: Path) -> None:
+def set_cache_dir(path: Path) -> None:
     if not path.is_dir():
         raise FileNotFoundError(f"The directory cache path {path} does not exist!")
 
@@ -49,19 +34,21 @@ def slugify(text: str) -> str:
 
 
 def diff_and_update(
-    content: str, cached_content_path: Path, differ_on_create=True
+    content: str, cached_content_path: Path, differ_on_create=True, should_update=True
 ) -> bool:
     """Compare string-based content with already cached content on disk.
-    Updates the cached content if the current content is different. Returns
-    True, if the contents differ. If differ_on_create is False, does not
-    return True, if the cached_content is created for the first time.
+    Updates the cached content if the current content is different and if
+    should_update is True. Returns True, if the contents differ. If
+    differ_on_create is False, does not return True, if the cached_content is
+    created for the first time.
     """
     cached_content = None
     if cached_content_path.is_file():
         cached_content = read(cached_content_path)
 
     if content != cached_content:
-        store(content, cached_content_path)
+        if should_update:
+            store(content, cached_content_path)
         return differ_on_create
 
     return False
@@ -77,16 +64,22 @@ class Feed(NamedTuple):
     build_email: MailBuilder
 
     @property
+    def id(self):
+        return slugify(self.title)
+
+    @property
     def path(self):
         cache_dir = get_cache_dir()
-        path = (cache_dir / slugify(self.title)).with_suffix(".html")
+        path = (cache_dir / self.id).with_suffix(".html")
         return path
 
-    def sync(self, differ_on_create=True) -> FeedMailer:
+    def sync(self, differ_on_create=True, dry_run=False) -> FeedMailer:
         logging.info(f"Syncing feed {self.title}")
         content = fetch(self.url, self.parser)
 
-        is_different = diff_and_update(content, self.path, differ_on_create)
+        is_different = diff_and_update(
+            content, self.path, differ_on_create, should_update=not dry_run
+        )
         logging.debug(f"Feed {self.title} is different: {is_different}")
 
         return FeedMailer(

@@ -6,7 +6,9 @@ from urllib.request import Request, urlopen
 
 from bs4 import BeautifulSoup
 
-USER_AGENT = "Feed v1.0.0"
+from feed import __version__
+
+USER_AGENT = f"Feed {__version__}"
 
 Parser = Callable[[BeautifulSoup], str]
 
@@ -22,6 +24,8 @@ def request(url: str) -> str:
     """
     domain = parse_domain(url)
     request = Request(url, headers={"HOST": domain, "User-Agent": USER_AGENT})
+
+    logging.debug(f"Fetch at {domain} as user agent {USER_AGENT}")
     with urlopen(request) as response:
         content = response.read().decode("utf8")
         return content

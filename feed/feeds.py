@@ -1,9 +1,22 @@
 import logging
 from pprint import pformat
+from typing import List
 
 from bs4 import BeautifulSoup
 
-from ..feed import Feed
+from .feed import Feed
+
+
+class DuplicateFeed(Exception):
+    pass
+
+
+def ensure_no_duplicates(feeds) -> None:
+    seen = set()
+    for feed in feeds:
+        if feed.id in seen:
+            raise DuplicateFeed(f"The feed {feed.title} is already defined!")
+        seen.add(feed.id)
 
 
 def parser(dom: BeautifulSoup) -> str:
@@ -34,4 +47,10 @@ OnePieceFeed = Feed(
     build_email=build_email,
 )
 
-FEEDS = sorted([OnePunchManFeed, OnePieceFeed], key=lambda f: f.title)
+FEEDS = sorted([OnePunchManFeed, OnePieceFeed], key=lambda f: f.id)
+FEED_ID_INDEX = {feed.id: feed for feed in FEEDS}
+ensure_no_duplicates(FEEDS)
+
+
+def get_feeds_from_ids(ids: List[str]) -> List[Feed]:
+    return [FEED_ID_INDEX[feed_id] for feed_id in ids]

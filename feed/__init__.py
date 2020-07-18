@@ -1,3 +1,1 @@
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
+__version__ = "v0.0.0.dev"
