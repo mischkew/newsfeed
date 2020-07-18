@@ -4,6 +4,7 @@ __pycache__
 .pytest_cache
 .benchmarks
 .python-version
+*.egg-info
 
 # IDE
 .vscode
