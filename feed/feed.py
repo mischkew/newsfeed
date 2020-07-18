@@ -10,5 +10,78 @@
 # - method for assembling email body
 
 # defines a feed per relevant website
+
 # - one punch man
 # - one piece
+import logging
+import os
+from pathlib import Path
+from typing import NamedTuple, Optional
+
+from .scrape import fetch, Parser, read, store
+
+DEFAULT_CACHE_DIR = "./.feed_cache"
+CUSTOM_CACHE_DIR: Optional[Path] = None
+
+
+def get_cache_dir() -> Path:
+    if CUSTOM_CACHE_DIR:
+        return CUSTOM_CACHE_DIR
+    return Path(os.environ.get("FEED_CACHE_PATH", DEFAULT_CACHE_DIR))
+
+
+def set_cache_path(path: Path) -> None:
+    if not path.is_dir():
+        raise FileNotFoundError(f"The directory cache path {path} does not exist!")
+
+    global CUSTOM_CACHE_DIR
+    CUSTOM_CACHE_DIR = path
+
+
+def slugify(text: str) -> str:
+    """Remove whitespace from text, join words with a hyphen and make the
+    string all lowercase.
+    """
+    return text.strip().replace(" ", "-").lower()
+
+
+def diff_and_update(
+    content: str, cached_content_path: Path, differ_on_create=True
+) -> bool:
+    """Compare string-based content with already cached content on disk.
+    Updates the cached content if the current content is different. Returns
+    True, if the contents differ. If differ_on_create is False, does not
+    return True, if the cached_content is created for the first time.
+    """
+    cached_content = None
+    if cached_content_path.is_file():
+        cached_content = read(cached_content_path)
+
+    if content != cached_content:
+        store(content, cached_content_path)
+        return differ_on_create
+
+    return False
+
+
+class Feed(NamedTuple):
+    title: str
+    url: str
+    parser: Parser
+
+    @property
+    def path(self):
+        cache_dir = get_cache_dir()
+        path = (cache_dir / slugify(self.title)).with_suffix(".html")
+        return path
+
+    def sync_and_send(self, differ_on_create=True, force_send=False) -> None:
+        logging.info(f"Syncing feed {self.title}")
+        content = fetch(self.url, self.parser)
+
+        is_different = diff_and_update(content, self.path, differ_on_create)
+        logging.debug(f"Feed {self.title} is different: {is_different}")
+
+        # TODO: send email if different
+        pass
+
