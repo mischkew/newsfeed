@@ -16,9 +16,12 @@
 import logging
 import os
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import Callable, NamedTuple, Optional
 
-from .scrape import fetch, Parser, read, store
+from bs4 import BeautifulSoup
+
+from .email import FeedMailer
+from .scrape import Parser, fetch, read, store
 
 DEFAULT_CACHE_DIR = "./.feed_cache"
 CUSTOM_CACHE_DIR: Optional[Path] = None
@@ -64,10 +67,14 @@ def diff_and_update(
     return False
 
 
+MailBuilder = Callable[[str, BeautifulSoup], str]
+
+
 class Feed(NamedTuple):
     title: str
     url: str
     parser: Parser
+    build_email: MailBuilder
 
     @property
     def path(self):
@@ -75,13 +82,15 @@ class Feed(NamedTuple):
         path = (cache_dir / slugify(self.title)).with_suffix(".html")
         return path
 
-    def sync_and_send(self, differ_on_create=True, force_send=False) -> None:
+    def sync(self, differ_on_create=True) -> FeedMailer:
         logging.info(f"Syncing feed {self.title}")
         content = fetch(self.url, self.parser)
 
         is_different = diff_and_update(content, self.path, differ_on_create)
         logging.debug(f"Feed {self.title} is different: {is_different}")
 
-        # TODO: send email if different
-        pass
-
+        return FeedMailer(
+            feed=self,
+            should_send=is_different,
+            email=self.build_email(self.title, BeautifulSoup(content, "html.parser")),
+        )
