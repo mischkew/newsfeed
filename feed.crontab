@@ -1,6 +1,0 @@
-# cronjobs to sync news feeds
-# run on reboot
-@reboot date &>> $HOME/.feed.crontab.log && $FEED_VIRTUALENV_PYTHON -m feed -v sync --send-to sven.mkw@gmail.com &>> $HOME/.feed.crontab.log
-
-# run everyday at 4pm
-0 16 * * * date &>> $HOME/.feed.crontab.log && $FEED_VIRTUALENV_PYTHON -m feed -v sync --send-to sven.mkw@gmail.com &>> $HOME/.feed.crontab.log

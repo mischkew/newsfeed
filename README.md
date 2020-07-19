@@ -34,22 +34,4 @@ You may customize the following environment variables: FEED_CACHE_DIR: The
 path were diff files for each newsfeed should be stored.
 ```
 
-## Cronjob Configuration
-
-We use cronjobs to sync the feeds on every reboot and once per day at 4pm. You can install the cronjobs via `crontab ./feed.crontab`.
-
-Make sure that these environment variables are defined:
-
-- `FEED_VIRTUALENV_PYTHON`: The path to the python binary of the virtualenv. If you don't use virtualenv, then this should simply be `python`.
-- `FEED_MAIL_USER`: The email address to login to.
-- `FEED_MAIL_PASSWORD`: The password for you mail account.
-
-In our `.bashrc` this looks as follows:
-
-```bash
-export FEED_VIRTUALENV_PYTHON="$HOME/.pyenv/versions/feed/bin/python"
-export FEED_MAIL_USER="<send-from-email>"
-export FEED_MAIL_PASSWORD="$(cat $HOME/.feed.password)"
-```
-
-We recommend to never store the password in plain text in your `.bashrc` or cronjob files. You may acquire the password by reading a special config file. Also, don't avoid using your daily email account ;)
+We recommend to setup a cronjob or launchd service to continously automatically sync your feeds.
