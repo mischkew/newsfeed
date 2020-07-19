@@ -75,7 +75,8 @@ class Feed(NamedTuple):
 
     def sync(self, differ_on_create=True, dry_run=False) -> FeedMailer:
         logging.info(f"Syncing feed {self.title}")
-        content = fetch(self.url, self.parser)
+        dom = fetch(self.url)
+        content = self.parser(self, dom)
 
         is_different = diff_and_update(
             content, self.path, differ_on_create, should_update=not dry_run
@@ -85,5 +86,5 @@ class Feed(NamedTuple):
         return FeedMailer(
             feed=self,
             should_send=is_different,
-            email=self.build_email(self.title, BeautifulSoup(content, "html.parser")),
+            email=self.build_email(self, BeautifulSoup(content, "html.parser")),
         )

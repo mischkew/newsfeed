@@ -31,11 +31,10 @@ def request(url: str) -> str:
         return content
 
 
-def fetch(url: str, parser: Parser) -> str:
+def fetch(url: str) -> str:
     logging.debug(f"Fetch url: {url}")
     content = request(url)
-    document = BeautifulSoup(content, "html.parser")
-    return parser(document)
+    return BeautifulSoup(content, "html.parser")
 
 
 def store(content: str, path: Path) -> None:
