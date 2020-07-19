@@ -11,4 +11,6 @@ __pycache__
 
 # App
 .feed_cache
+feed.log
+feed.autosync.plist
 
