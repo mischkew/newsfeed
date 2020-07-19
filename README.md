@@ -34,4 +34,4 @@ You may customize the following environment variables: FEED_CACHE_DIR: The
 path were diff files for each newsfeed should be stored.
 ```
 
-We recommend to setup a cronjob or launchd service to continously automatically sync your feeds.
+We recommend to setup a cronjob or launchd service to continously automatically sync your feeds, see [this](feed.template.plist) launchd template for example.

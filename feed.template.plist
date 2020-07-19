@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>feed.autosync</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string><PATH-TO-VENV-PYTHON></string>
+            <string>-m</string>
+            <string>feed</string>
+            <string>-v</string>
+            <string>sync</string>
+            <string>--send-to</string>
+            <string><YOUR-EMAIL></string>
+        </array>
+        <key>EnvironmentVariables</key>
+        <dict>
+		    <key>FEED_MAIL_USER</key>
+            <string><YOUR-SENDER-EMAIL></string>
+            <key>FEED_MAIL_PASSWORD</key>
+            <string><YOUR-SENDER-PASSWORD></string>
+            <key>FEED_CACHE_DIR</key>
+            <string><PATH-TO-STORE-CACHE></string>
+        </dict>
+        <key>StandardOutPath</key>
+        <string><PATH-TO-LOG-FILE></string>
+        <key>StandardErrorPath</key>
+        <string><PATH-TO-LOG-FILE></string>
+        <key>StartCalendarInterval</key>
+        <dict>
+            <key>Hour</key>
+            <integer>16</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+		<key>RunAtLoad</key>
+		<true/>
+        <key>UserName</key>
+        <string><YOUR-USERNAME></string>
+	</dict>
+</plist>
