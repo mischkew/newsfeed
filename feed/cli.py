@@ -195,7 +195,9 @@ FEED_MAIL_PASSWORD: The password for the mail account.""",
     log_level = logging.INFO
     if args.verbose:
         log_level = logging.DEBUG
-    logging.basicConfig(level=log_level)
+    logging.basicConfig(
+        level=log_level, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
     if args.debugger:
         enable_debugger(parser)
