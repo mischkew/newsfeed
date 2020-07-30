@@ -19,5 +19,4 @@ setup(
     install_requires=["beautifulsoup4>=4.9.1,<5"],
     extras_require={"dev": ["ptvsd>=4.3.2,<5"]},
     include_package_data=True,
-    entry_points={"console_scripts": ["feed = feed.cli:main"]},
 )
