@@ -1,7 +1,9 @@
 import logging
 import os
 from pathlib import Path
+from pprint import pformat
 from typing import Callable, NamedTuple, Optional
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
@@ -88,3 +90,56 @@ class Feed(NamedTuple):
             should_send=is_different,
             email=self.build_email(self, BeautifulSoup(content, "html.parser")),
         )
+
+
+class NoAnchorTag(Exception):
+    pass
+
+
+def build_parser(pattern: str) -> Parser:
+    """Create a parser from a CSS selector. If the selector returns multiple
+    elements, only the first one is observed for change. The CSS selector should
+    contain a link.
+    """
+
+    def parser(feed: Feed, dom: BeautifulSoup) -> str:
+        element = dom.select(pattern)[0]
+        logging.debug(pformat(element, indent=2))
+
+        if element.name != "a" and element.find("a") is None:
+            raise NoAnchorTag("The parser pattern must contain an anchor-tag!")
+
+        return str(element)
+
+    return parser
+
+
+def build_mail_builder(prefix: str) -> MailBuilder:
+    """Creates an email builder from a text which is prepended to the parsed DOM
+    element. If the parsed DOM element is a relative link, the domain url will
+    be prepended to convert it into an absolute link (which can be visited from
+    the email client of the recipient).
+    """
+
+    def mail_builder(feed: Feed, dom: BeautifulSoup) -> str:
+        link = dom.select("a")[0]
+        link["href"] = urljoin(feed.url, link["href"])
+
+        email = prefix.format(**feed._asdict())
+        email += "\n"
+        email += str(dom)
+        return email
+
+    return mail_builder
+
+
+def build_feed(title: str, url: str, selector: str, email_body: str) -> Feed:
+    """A convenience method to construct feeds from CSS-selector and email body
+    strings.
+    """
+    return Feed(
+        title=title,
+        url=url,
+        parser=build_parser(selector),
+        build_email=build_mail_builder(email_body),
+    )

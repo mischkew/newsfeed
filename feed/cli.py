@@ -8,7 +8,7 @@ from .get_version import get_version
 
 from .email import create_server, get_email_server, set_email_server
 from .feed import get_cache_dir, set_cache_dir
-from .feeds import FEEDS, get_feeds_from_ids
+from .registry import Registry
 
 
 def enable_debugger(parser: ArgumentParser) -> bool:
@@ -27,7 +27,12 @@ def enable_debugger(parser: ArgumentParser) -> bool:
     ptvsd.wait_for_attach()
 
 
-def sync_feeds(parser: ArgumentParser, args: Namespace) -> None:
+#
+# Subcommands
+#
+
+
+def sync_feeds(parser: ArgumentParser, args: Namespace, registry: Registry) -> None:
     if args.mail_server:
         set_email_server(args.mail_server)
 
@@ -48,7 +53,9 @@ def sync_feeds(parser: ArgumentParser, args: Namespace) -> None:
             " password in the terminal or define FEED_MAIL_PASSWORD."
         )
 
-    feeds = get_feeds_from_ids(args.feeds) if args.feeds else FEEDS
+    feeds = (
+        registry.get_feeds_from_ids(args.feeds) if args.feeds else registry.get_feeds()
+    )
     server = create_server(get_email_server(), mail_user, mail_password)
     recepient = args.send_to if args.send_to else mail_user
 
@@ -66,9 +73,9 @@ def sync_feeds(parser: ArgumentParser, args: Namespace) -> None:
         )
 
 
-def list_feeds(parser: ArgumentParser, args: Namespace) -> None:
+def list_feeds(parser: ArgumentParser, args: Namespace, registry: Registry) -> None:
     print("Available Feeds:\n")
-    for feed in FEEDS:
+    for feed in registry.get_feeds():
         print("  ", end="")
         if not feed.path.is_file():
             print("! ", end="")
@@ -94,7 +101,12 @@ def clean_feeds(parser: ArgumentParser, args: Namespace) -> None:
     print(f"Deleted {len(cache_files)} cached files.")
 
 
-def main() -> None:
+#
+# Main Command
+#
+
+
+def program(registry: Registry) -> None:
     parser = ArgumentParser(
         description="Send emails for updates on personalized news feeds.",
         epilog="""You may customize the following environment variables:
@@ -177,7 +189,7 @@ FEED_MAIL_PASSWORD: The password for the mail account.""",
     sync_p.add_argument(
         "--feeds",
         nargs="+",
-        choices=[feed.id for feed in FEEDS],
+        choices=[feed.id for feed in registry.get_feeds()],
         help="Choose the feeds to update. Will update all feeds if none given.",
     )
 
@@ -219,4 +231,4 @@ FEED_MAIL_PASSWORD: The password for the mail account.""",
         parser.error("Please choose a subcommand.")
 
     # run the chosen command
-    args.func(parser, args)
+    args.func(parser, args, registry)

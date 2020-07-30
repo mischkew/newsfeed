@@ -7,8 +7,7 @@
         <key>ProgramArguments</key>
         <array>
             <string><PATH-TO-VENV-PYTHON></string>
-            <string>-m</string>
-            <string>feed</string>
+            <string><PATH-TO-FEED-SCRIPT></string>
             <string>-v</string>
             <string>sync</string>
             <string>--send-to</string>
