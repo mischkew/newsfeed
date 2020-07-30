@@ -4,7 +4,7 @@ from argparse import ArgumentParser, Namespace
 from getpass import getpass
 from pathlib import Path
 
-from feed import __version__
+from .get_version import get_version
 
 from .email import create_server, get_email_server, set_email_server
 from .feed import get_cache_dir, set_cache_dir
@@ -203,7 +203,7 @@ FEED_MAIL_PASSWORD: The password for the mail account.""",
         enable_debugger(parser)
 
     if args.version:
-        print(__version__)
+        print(get_version())
         return
 
     if args.cache_dir:

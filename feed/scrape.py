@@ -6,9 +6,9 @@ from urllib.request import Request, urlopen
 
 from bs4 import BeautifulSoup
 
-from feed import __version__
+from .get_version import get_version
 
-USER_AGENT = f"Feed {__version__}"
+USER_AGENT = f"Feed {get_version()}"
 
 Parser = Callable[[BeautifulSoup], str]
 
