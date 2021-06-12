@@ -1,0 +1,7 @@
+.benchmarks
+.feed_cache
+.git
+.mypy_cache
+.pytest_cache
+.vscode
+*.egg-info

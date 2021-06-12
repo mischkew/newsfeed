@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+  feedmailer:
+    image: feedmailer
+    restart: unless-stopped
+    environment:
+      - FEED_MAIL_SERVER
+      - FEED_MAIL_USER
+      - FEED_MAIL_SEND_TO
+      - FEED_MAIL_PASSWORD
+    volumes:
+      - db:/data/
+
+volumes:
+  db:

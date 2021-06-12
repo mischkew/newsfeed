@@ -62,4 +62,16 @@ path were diff files for each newsfeed should be stored.
 
 ## Daily Updates
 
-We recommend to setup a cronjob or launchd service to continously automatically sync your feeds, see [this](feed.template.plist) launchd template for example.
+A docker compose setup has been provided which runs a daily cron job. 
+
+Create a `my-feeds.py` file in the root of this repository. Register your custom feeds like shown in the example section above. The compose definition uses a persitent volume for the cache directory.
+
+Then build and run the docker container. 
+
+```bash
+docker build -t feedmailer .
+docker compose up --detach
+
+# check logs with
+docker compose logs --follow
+```

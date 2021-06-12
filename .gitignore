@@ -13,5 +13,6 @@ __pycache__
 .feed_cache
 feed.log
 feed.autosync.plist
+.env
 /my-feeds.py
 
