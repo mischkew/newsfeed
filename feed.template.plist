@@ -8,10 +8,11 @@
         <array>
             <string><PATH-TO-VENV-PYTHON></string>
             <string><PATH-TO-FEED-SCRIPT></string>
-            <string>-v</string>
+            <string>--verbose</string>
             <string>sync</string>
             <string>--send-to</string>
             <string><YOUR-EMAIL></string>
+	    <string>--report-errors</string>
         </array>
         <key>EnvironmentVariables</key>
         <dict>

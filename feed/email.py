@@ -59,8 +59,8 @@ def create_server(server_url: str, email: str, password: str) -> SMTP:
 
 
 class FeedMailer:
-    def __init__(self, feed: "Feed", should_send: bool, email: str):
-        self.feed = feed
+    def __init__(self, subject: str, should_send: bool, email: str):
+        self.subject = subject
         self.should_send = should_send
         self.email = email
 
@@ -75,7 +75,7 @@ class FeedMailer:
             message = MIMEMultipart()
             message["From"] = f"Feed Mailer <{smtp_server.user}>"
             message["To"] = recepient_email
-            message["Subject"] = f"Feed: {self.feed.title}"
+            message["Subject"] = f"Feed: {self.subject}"
             message.attach((MIMEText(self.email, "html")))
             return message.as_string()
 

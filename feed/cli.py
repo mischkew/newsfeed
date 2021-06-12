@@ -1,12 +1,15 @@
 import logging
 import os
+import traceback
+import sys
 from argparse import ArgumentParser, Namespace
 from getpass import getpass
 from pathlib import Path
+from typing import List
 
 from .get_version import get_version
 
-from .email import create_server, get_email_server, set_email_server
+from .email import create_server, get_email_server, set_email_server, FeedMailer
 from .feed import get_cache_dir, set_cache_dir
 from .registry import Registry
 
@@ -62,15 +65,40 @@ def sync_feeds(parser: ArgumentParser, args: Namespace, registry: Registry) -> N
     if args.dry_run:
         print("Dry-Run: Not updating cache and sending emails.")
 
+    errors: List[Tuple[Feed, Exception]] = []
     for index, feed in enumerate(feeds):
         print(f"Syncing {feed.title} ({index+1}/{len(feeds)})")
-        mailer = feed.sync(differ_on_create=args.initial_send, dry_run=args.dry_run)
-        mailer(
-            smtp_server=server,
-            recepient_email=recepient,
-            force_send=args.force_send,
-            dry_run=args.dry_run,
+        try:
+            mailer = feed.sync(differ_on_create=args.initial_send, dry_run=args.dry_run)
+            mailer(
+                smtp_server=server,
+                recepient_email=recepient,
+                force_send=args.force_send,
+                dry_run=args.dry_run,
+            )
+        except Exception as error:
+            error_log = "".join(traceback.format_exception(*sys.exc_info()))
+            logging.error(error_log)
+            errors.append((feed, error_log))
+            if args.fail_on_error:
+                break
+
+    if args.report_errors and len(errors) > 0:
+        print("Reporting a total of {len(errors)} error(s) to {recepient}.")
+        error_log = ""
+        for index, error_tuple in enumerate(errors):
+            feed, error = error_tuple
+            error_log += (
+                f"<b>Error {index+1}/{len(errors)} - Feed: {feed.title}:</b>\n\n"
+            )
+            error_log += error
+            error_log += "\n\n"
+
+        error_log = error_log.replace("\n", "<br></br>")
+        mailer = FeedMailer(
+            f"{len(errors)} Error(s) Occured", should_send=True, email=error_log
         )
+        mailer(smtp_server=server, recepient_email=recepient, dry_run=args.dry_run)
 
 
 def list_feeds(parser: ArgumentParser, args: Namespace, registry: Registry) -> None:
@@ -191,6 +219,23 @@ FEED_MAIL_PASSWORD: The password for the mail account.""",
         nargs="+",
         choices=[feed.id for feed in registry.get_feeds()],
         help="Choose the feeds to update. Will update all feeds if none given.",
+    )
+    sync_p.add_argument(
+        "--fail-on-error",
+        action="store_true",
+        help=(
+            "By default, the sync will continue when a feed could not have been"
+            " crawled. For debugging purposes, this flag will stop the program"
+            " on the first error."
+        ),
+    )
+    sync_p.add_argument(
+        "--report-errors",
+        action="store_true",
+        help=(
+            "Send the log file to the send-to email if an error occured. Useful for"
+            " debugging purposes."
+        ),
     )
 
     list_p = subparsers.add_parser("list", description="List available news feeds")

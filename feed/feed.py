@@ -86,7 +86,7 @@ class Feed(NamedTuple):
         logging.debug(f"Feed {self.title} is different: {is_different}")
 
         return FeedMailer(
-            feed=self,
+            subject=self.title,
             should_send=is_different,
             email=self.build_email(self, BeautifulSoup(content, "html.parser")),
         )
